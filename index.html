@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anchor & Claw Consulting</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0d1b2a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #162436;
+    --navy-light: #1e3450;
+    --indigo: #2a3f7e;
+    --blue-accent: #3d6cb5;
+    --glow: #4a7fd4;
+    --slate: #8ea8c3;
+    --light: #d6e4f0;
+    --white: #f0f6fc;
+    --cell-alive: rgba(74, 127, 212, 0.55);
+    --cell-glow: rgba(74, 127, 212, 0.85);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'JetBrains Mono', 'SF Mono', 'SFMono-Regular', ui-monospace, Menlo, Monaco, Consolas, monospace;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ── CANVAS BACKGROUND ── */
+  #gol-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    opacity: 0.35;
+  }
+
+  /* ── LAYOUT ── */
+  .wrap { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 3rem;
+    background: linear-gradient(to bottom, rgba(13,27,42,0.95) 0%, transparent 100%);
+    backdrop-filter: blur(4px);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .nav-logo img,
+  .footer-logo img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(74,127,212,0.38));
+  }
+
+  .nav-logo .brand-text,
+  .footer-logo .brand-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.02em;
+    color: var(--white);
+  }
+
+  .nav-logo .brand-text span,
+  .footer-logo .brand-text span { color: var(--glow); }
+
+  nav ul { list-style: none; display: flex; gap: 1.5rem; align-items: center; }
+  nav ul a {
+    color: var(--slate);
+    text-decoration: none;
+    font-size: 0.92rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--white); }
+
+  .nav-email {
+    color: var(--light) !important;
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-cta {
+    color: var(--slate) !important;
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+  .nav-cta:hover { color: var(--white) !important; }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 0 10vw;
+    padding-top: 6rem;
+  }
+
+  .hero-inner {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .hero-copy { max-width: 760px; }
+
+  .hero-logo-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .hero-logo-card {
+    position: relative;
+    width: min(360px, 72vw);
+    aspect-ratio: 1;
+    border: 1px solid rgba(74, 127, 212, 0.22);
+    border-radius: 14px;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(74, 127, 212, 0.24), transparent 58%),
+      linear-gradient(145deg, rgba(22,36,54,0.72), rgba(13,27,42,0.42));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+  }
+
+  .hero-logo-card::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(214, 228, 240, 0.08);
+    border-radius: 10px;
+  }
+
+  .hero-logo-card img {
+    position: absolute;
+    inset: 6%;
+    width: 88%;
+    height: 88%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 18px rgba(74,127,212,0.25));
+  }
+
+  .hero-eyebrow {
+    font-size: 0.82rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block; width: 2rem; height: 1px;
+    background: var(--glow);
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.05;
+    color: var(--white);
+    max-width: 14ch;
+    margin-bottom: 1.75rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--glow);
+  }
+
+  .hero-sub {
+    font-size: 1.2rem;
+    color: var(--slate);
+    max-width: 42ch;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    font-weight: 300;
+  }
+
+  .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  .btn-primary {
+    background: var(--blue-accent);
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.85rem 2rem;
+    border-radius: 3px;
+    font-size: 0.98rem;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--glow); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--slate);
+    text-decoration: none;
+    padding: 0.85rem 2rem;
+    border: 1px solid rgba(142, 168, 195, 0.3);
+    border-radius: 3px;
+    font-size: 0.98rem;
+    letter-spacing: 0.04em;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--white); border-color: var(--slate); }
+
+  /* ── SECTION SHARED ── */
+  section { padding: 7rem 10vw; }
+
+  .section-label {
+    font-size: 0.86rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+    color: var(--white);
+    margin-bottom: 1rem;
+  }
+
+  .section-intro {
+    color: var(--slate);
+    font-size: 1.08rem;
+    line-height: 1.75;
+    max-width: 50ch;
+    margin-bottom: 4rem;
+    font-weight: 300;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(74, 127, 212, 0.15);
+    margin: 0 10vw;
+  }
+
+  /* ── SERVICES ── */
+  #services { background: transparent; }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5px;
+    background: rgba(74, 127, 212, 0.12);
+    border: 1px solid rgba(74, 127, 212, 0.12);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .service-card {
+    background: var(--navy-mid);
+    padding: 2rem 2rem 2.5rem;
+    transition: background 0.25s;
+  }
+  .service-card:hover { background: var(--navy-light); }
+
+  .service-icon {
+    width: 2.5rem; height: 2.5rem;
+    border: 1px solid rgba(74, 127, 212, 0.3);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+    color: var(--glow);
+    font-size: 1.08rem;
+  }
+
+  .service-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--white);
+    margin-bottom: 0.6rem;
+  }
+
+  .service-card p {
+    font-size: 0.96rem;
+    color: var(--slate);
+    line-height: 1.65;
+    margin-bottom: 1rem;
+    font-weight: 300;
+  }
+
+  .service-price {
+    font-size: 0.86rem;
+    color: var(--glow);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── ABOUT ── */
+  #about {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+  }
+
+  .about-text h2 { margin-bottom: 1.5rem; }
+
+  .about-text p {
+    color: var(--slate);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-weight: 300;
+  }
+
+  .about-text p strong {
+    color: var(--light);
+    font-weight: 500;
+  }
+
+  .about-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .anchor-art {
+    width: 260px; height: 260px;
+    opacity: 0.15;
+  }
+
+  .about-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(74, 127, 212, 0.12);
+    border: 1px solid rgba(74, 127, 212, 0.12);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 3rem;
+  }
+
+  .stat-cell {
+    background: var(--navy-mid);
+    padding: 1.5rem;
+  }
+
+  .stat-cell .num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-cell .num span { color: var(--glow); }
+
+  .stat-cell .lbl {
+    font-size: 0.86rem;
+    color: var(--slate);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── HOW IT WORKS ── */
+  #process { background: transparent; }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid rgba(74, 127, 212, 0.12);
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 760px;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    align-items: start;
+    gap: 1.5rem;
+    padding: 1.75rem 2rem;
+    border-bottom: 1px solid rgba(74, 127, 212, 0.1);
+    background: var(--navy-mid);
+    transition: background 0.2s;
+  }
+  .step:last-child { border-bottom: none; }
+  .step:hover { background: var(--navy-light); }
+
+  .step-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: rgba(74, 127, 212, 0.25);
+    line-height: 1;
+    padding-top: 0.1rem;
+  }
+
+  .step h3 {
+    font-weight: 500;
+    font-size: 1.08rem;
+    color: var(--white);
+    margin-bottom: 0.35rem;
+  }
+
+  .step p {
+    font-size: 0.96rem;
+    color: var(--slate);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── CONTACT ── */
+  #contact { text-align: center; }
+
+  #contact .section-label { justify-content: center; display: flex; }
+  #contact h2 { max-width: 20ch; margin: 0 auto 1rem; }
+  #contact .section-intro { margin: 0 auto 3rem; text-align: center; }
+
+  .contact-options {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .contact-pill {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--navy-mid);
+    border: 1px solid rgba(74, 127, 212, 0.2);
+    padding: 0.85rem 1.5rem;
+    border-radius: 3px;
+    color: var(--light);
+    text-decoration: none;
+    font-size: 0.98rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .contact-pill:hover { border-color: var(--glow); background: var(--navy-light); }
+
+  .contact-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+  }
+
+
+  /* ── CONTACT FORM ── */
+  .contact-form {
+    max-width: 680px;
+    margin: 2.5rem auto 0;
+    text-align: left;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .form-row {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .form-row label {
+    font-size: 0.86rem;
+    color: var(--light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .form-row input,
+  .form-row select,
+  .form-row textarea {
+    width: 100%;
+    background: var(--navy-mid);
+    border: 1px solid rgba(74, 127, 212, 0.25);
+    border-radius: 3px;
+    color: var(--white);
+    font-family: 'JetBrains Mono', 'SF Mono', 'SFMono-Regular', ui-monospace, Menlo, Monaco, Consolas, monospace;
+    font-size: 1.08rem;
+    padding: 0.85rem 1rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .form-row input:focus,
+  .form-row select:focus,
+  .form-row textarea:focus {
+    border-color: var(--glow);
+    background: var(--navy-light);
+  }
+
+  .form-row textarea {
+    resize: vertical;
+    min-height: 140px;
+  }
+
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+  }
+
+  .form-submit {
+    border: none;
+    cursor: pointer;
+    justify-self: start;
+    margin-top: 0.5rem;
+  }
+
+  .form-status {
+    min-height: 1.5rem;
+    color: var(--slate);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .form-status.error {
+    color: #ffb4b4;
+  }
+
+  .form-status.success {
+    color: var(--light);
+  }
+
+  .proactive-note {
+    margin-bottom: 2rem !important;
+  }
+
+  .form-note {
+    color: var(--light);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative; z-index: 1;
+    padding: 2.5rem 10vw;
+    border-top: 1px solid rgba(74, 127, 212, 0.1);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--slate);
+    text-decoration: none;
+  }
+
+  .footer-logo img {
+    width: 34px;
+    height: 34px;
+    opacity: 0.75;
+  }
+
+  .footer-logo .brand-text {
+    font-size: 1.08rem;
+    color: var(--slate);
+  }
+
+  footer p {
+    font-size: 0.86rem;
+    color: rgba(142, 168, 195, 0.5);
+  }
+
+  /* ── TRUST BAR ── */
+  .trust-bar {
+    display: flex; gap: 2.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 5rem;
+  }
+
+  .trust-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.86rem;
+    color: var(--slate);
+    letter-spacing: 0.06em;
+  }
+
+  .trust-check {
+    width: 16px; height: 16px;
+    border: 1px solid rgba(74, 127, 212, 0.4);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--glow);
+    font-size: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 760px) {
+    nav {
+      padding: 1rem 1.25rem;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    nav ul {
+      gap: 0.85rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .nav-email {
+      font-size: 0.78rem;
+    }
+
+    section {
+      padding-left: 7vw;
+      padding-right: 7vw;
+    }
+
+    #hero {
+      padding-left: 7vw;
+      padding-right: 7vw;
+    }
+
+    .hero-inner {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .hero-logo-wrap {
+      order: -1;
+      justify-content: flex-start;
+    }
+
+    .hero-logo-card {
+      width: min(220px, 56vw);
+    }
+
+    .nav-logo .brand-text {
+      font-size: 1.05rem;
+    }
+
+    .nav-logo img {
+      width: 34px;
+      height: 34px;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="gol-canvas"></canvas>
+
+<div class="wrap">
+
+  <!-- NAV -->
+  <nav>
+    <a href="#hero" class="nav-logo" data-scroll-target="hero" aria-label="Anchor & Claw home">
+      <img src="assets/logo.png" alt="" aria-hidden="true">
+      <span class="brand-text">Anchor <span>&amp;</span> Claw</span>
+    </a>
+    <ul>
+      <li><a href="#services" data-scroll-target="services">Services</a></li>
+      <li><a href="#about" data-scroll-target="about">About</a></li>
+      <li><a href="#contact" data-scroll-target="contact" class="nav-cta">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-eyebrow">Cybersecurity Consulting</div>
+        <h1>Security guidance<br>built on real-world<br><em>experience.</em></h1>
+        <p class="hero-sub">I help businesses stay ahead of security problems before they turn into expensive incidents. Practical assessments, hardening, monitoring, and investigation support from someone who sees how real attacks unfold and knows how to defend against them.</p>
+        <div class="hero-btns">
+          <a href="#contact" data-scroll-target="contact" class="btn-primary">Book a Consultation</a>
+          <a href="#services" data-scroll-target="services" class="btn-ghost">What I can help with</a>
+        </div>
+        <div class="trust-bar">
+          <div class="trust-item"><div class="trust-check">✓</div> Clear scoped engagements</div>
+          <div class="trust-item"><div class="trust-check">✓</div> Direct expert access</div>
+          <div class="trust-item"><div class="trust-check">✓</div> Technical depth, clear communication</div>
+          <div class="trust-item"><div class="trust-check">✓</div> Initial consultation</div>
+          <div class="trust-item"><div class="trust-check">✓</div> Full 6-service bundle available for $1000</div>
+        </div>
+      </div>
+      <div class="hero-logo-wrap" aria-hidden="true">
+        <div class="hero-logo-card">
+          <img src="assets/logo.png" alt="">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="section-label">What I can help with</div>
+    <h2>Practical cybersecurity<br>and technical advisory.</h2>
+    <p class="section-intro">These services are designed to work together as a practical and proactive security program for small businesses and organizations. Each engagement focuses on reducing attack exposure, improving resilience, and helping you stay ahead of problems before they become incidents. Organizations can choose individual services based on their needs or bundle all six together for a more comprehensive review of their overall security posture.</p>
+
+    
+<div class="services-grid">
+  <div class="service-card">
+    <div class="service-icon">🔐</div>
+    <h3>Account Security Assessments & Identity Protection</h3>
+    <p>A proactive review of accounts, authentication practices, access controls, password hygiene, recovery options, open source intelligence exposure, and common email risk areas. Weak passwords, reused credentials, missing multi-factor authentication, and poorly organized account access are still some of the most common causes of compromise today. I help organizations improve identity security through stronger authentication controls, safer account management practices, password managers, suspicious login alerting, and practical recommendations designed to reduce the chances of preventable account takeover incidents before they happen. The goal is to make it significantly harder for attackers to gain access in the first place while helping your organization build safer long-term security habits.</p>
+    <div class="service-price">Starting at $200 per engagement</div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-icon">☁</div>
+    <h3>Secure Platform Configuration & Attack Surface Reduction</h3>
+    <p>Secure environment setup and hardening for cloud platforms, business infrastructure, and Windows, macOS, or Linux endpoints. I implement preventative controls designed to reduce unnecessary attack exposure, limit opportunities for lateral movement, and strengthen the overall defensive posture of the organization. Modern adversaries frequently rely on built-in operating system functionality to avoid detection instead of deploying obvious malware. Small configuration weaknesses and overlooked defaults are often enough to create serious risk. This service focuses on reducing those opportunities through practical hardening, safer administrative practices, endpoint controls, logging improvements, and security-focused operational guidance built around how real attacks actually occur.</p>
+    <div class="service-price">Starting at $200 per engagement</div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-icon">🔁</div>
+    <h3>Resilience & Disaster Recovery Planning</h3>
+    <p>I review and implement thoughtful backup and disaster recovery strategies for both on-premise and cloud environments, validate that systems are functioning as intended, and document recovery procedures so organizations are confident responding during a real incident. This includes backup validation, recovery testing, recovery walkthroughs, and simulated ransomware-style recovery exercises designed to help teams understand exactly how to restore critical systems and data under pressure. The unfortunate reality of ransomware, account compromise, accidental deletion, and system failure is that one of those situations eventually becomes inevitable. The goal is simple: make sure a bad day does not become a business-ending one.</p>
+    <div class="service-price">Starting at $200 per engagement</div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-icon">🚨</div>
+    <h3>Incident Response & Recovery Support</h3>
+    <p>When something already looks wrong, access is compromised, or systems start behaving unexpectedly, I help contain the problem, secure the environment, and walk organizations through the recovery process step by step. This includes practical containment guidance, rebuilding affected systems, recovery support, investigation assistance, and helping organizations understand how the incident occurred in the first place. Security incidents are stressful, especially when teams are unsure what happened or whether their systems are actually safe again. My goal is not just to stop the bleeding and clean up the issue, but to help organizations regain confidence in their systems, accounts, and overall security posture without adding more panic or confusion to the situation.</p>
+    <div class="service-price">Starting at $200 per engagement</div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-icon">🧭</div>
+    <h3>Threat Modeling & Risk Management</h3>
+    <p>Sometimes the hardest part of cybersecurity is simply knowing what actually matters. This service focuses on understanding your environment from an adversarial perspective without performing direct technical testing against systems. I work with organizations to build asset inventories, develop site maps, identify critical systems, evaluate trust relationships, and model realistic attack paths against the assets that matter most. The goal is not to overwhelm organizations with technical jargon or expensive enterprise frameworks. It is to help businesses understand where meaningful risk exists, prioritize improvements thoughtfully, and make practical security decisions based on realistic threat exposure.</p>
+    <div class="service-price">Starting at $200 per engagement</div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-icon">🔍</div>
+    <h3>Vulnerability Management & Security Testing</h3>
+    <p>Most successful attacks do not begin with sophisticated exploits. They begin with exposed services, weak authentication, risky configurations, forgotten systems, or small security gaps that were never reviewed closely. This service focuses on actively validating and testing those weaknesses through attack surface review, vulnerability validation, configuration analysis, and targeted security testing designed around realistic attack paths. Unlike the hardening and configuration services, the goal here is not to implement the fixes directly. The goal is to identify exposure, validate realistic attack opportunities, demonstrate how those weaknesses could be abused by an adversary, and provide practical recommendations that help organizations strengthen their defenses before those gaps become incidents.</p>
+    <div class="service-price">Starting at $200 per engagement</div>
+  </div>
+</div>
+
+  </section>
+
+  <hr class="divider">
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-text">
+      <div class="section-label">About</div>
+      <h2>Hi, I'm Aidan.</h2>
+      <p>I'm a cybersecurity professional focused on practical security consulting, technical investigations, and risk-focused advisory work for businesses that need real expertise and direct communication.</p>
+      <p>As an RIT cybersecurity graduate with over three years of experience in systems administration and detection engineering, I have seen the kinds of issues that lead to initial access, lateral movement, persistence, data theft, and ransomware on the global stage. My focus is helping clients address those risks early, before they become the kind of incident that costs real money and causes real disruption.</p>
+      <p>I keep my consulting intentionally focused. <strong>You'll always work directly with me</strong>, not a rotating help desk, outsourced support chain, or disconnected sales layer. If I take on an engagement, it gets my full attention and I see it through until you are satisfied. That is my guarantee.</p>
+
+      <p><strong>Anchor &amp; Claw</strong> is the way I think about security. The anchor represents stability and security: helping your business feel more grounded, more resilient, and less exposed than it was before. The claw represents precision, accuracy, and tenacity: carefully identifying weak points and helping address threats before they turn into stressful cleanup.</p>
+
+
+    </div>
+  </section>
+
+
+
+
+  <hr class="divider">
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-label">Get In Touch</div>
+    <h2>Let’s find a solution.</h2>
+    <p class="section-intro">If you want to get ahead of a security concern, validate a setup, or talk through something that already feels wrong, send a short note with what is going on. I am confident in the work I take on and straightforward about the work I do not. If something falls outside my scope, I will tell you honestly and help point you toward the right people. My goal is to give practical guidance, do solid work, and keep learning so I can continue helping clients stay ahead of problems before they become incidents.</p>
+
+    <div class="contact-options">
+      <a href="mailto:anchorandclaw@protonmail.com?subject=Consultation%20Request%20-%20Anchor%20%26%20Claw" class="contact-pill">
+        <div class="contact-dot"></div>
+        anchorandclaw@protonmail.com
+      </a>
+    </div>
+
+    <form id="contact-form" class="contact-form" novalidate>
+      <p class="form-note">This form opens a prepared email in your mail app. You can also email me directly at anchorandclaw@protonmail.com.</p>
+      <div class="form-row">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" maxlength="80" required>
+      </div>
+
+      <div class="form-row">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" maxlength="120" required>
+      </div>
+
+      <div class="form-row">
+        <label for="service">What can I help with?</label>
+        
+<select id="service" name="service" required>
+          <option value="">Choose one</option>
+          <option value="Account Security Assessments & Identity Protection">Account Security Assessments & Identity Protection</option>
+          <option value="Secure Platform Configuration & Attack Surface Reduction">Secure Platform Configuration & Attack Surface Reduction</option>
+          <option value="Resilience & Disaster Recovery Planning">Resilience & Disaster Recovery Planning</option>
+          <option value="Incident Response & Recovery Support">Incident Response & Recovery Support</option>
+          <option value="Threat Modeling & Risk Management">Threat Modeling & Risk Management</option>
+          <option value="Vulnerability Management & Security Testing">Vulnerability Management & Security Testing</option>
+          <option value="Full 6-Service Bundle">Full 6-Service Bundle</option>
+          <option value="Other">Other</option>
+        </select>
+
+      </div>
+
+      <div class="form-row">
+        <label for="message">Please describe what is going on</label>
+        <textarea id="message" name="message" rows="6" minlength="20" maxlength="1200" required></textarea>
+      </div>
+
+      <input type="text" name="_gotcha" class="honeypot" tabindex="-1" autocomplete="off">
+
+      <button type="submit" class="btn-primary form-submit">Send Message</button>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+
+    </form>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="#hero" class="footer-logo" data-scroll-target="hero" aria-label="Anchor & Claw home">
+      <img src="assets/logo.png" alt="" aria-hidden="true">
+      <span class="brand-text">Anchor <span>&amp;</span> Claw</span>
+    </a>
+    <p>Helping local businesses identify and reduce threats before they become incidents.</p>
+    <p>© 2026 Anchor &amp; Claw</p>
+  </footer>
+
+</div>
+
+
+<!-- IN-PAGE SCROLLING: Works on GitHub Pages and also avoids Google Sites anchor-link weirdness when embedded. -->
+<script>
+(function() {
+  document.addEventListener('click', function(event) {
+    const link = event.target.closest('[data-scroll-target]');
+    if (!link) return;
+
+    const target = document.getElementById(link.getAttribute('data-scroll-target'));
+    if (!target) return;
+
+    event.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (history.pushState) {
+      history.pushState(null, '', '#' + target.id);
+    }
+  });
+})();
+</script>
+
+<!-- CONTACT FORM VALIDATION -->
+<script>
+(function() {
+  const form = document.getElementById('contact-form');
+  const status = document.getElementById('form-status');
+  if (!form || !status) return;
+
+  const destination = 'anchorandclaw@protonmail.com';
+
+  const allowedServices = new Set([
+    'Account Security Assessments & Identity Protection',
+    'Secure Platform Configuration & Attack Surface Reduction',
+    'Resilience & Disaster Recovery Planning',
+    'Incident Response & Recovery Support',
+    'Threat Modeling & Risk Management',
+    'Vulnerability Management & Security Testing',
+    'Full 6-Service Bundle',
+    'Other'
+  ]);
+
+  function cleanText(value, maxLength) {
+    return value
+      .replace(/[<>]/g, '')
+      .replace(/[\u0000-\u001F\u007F]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, maxLength);
+  }
+
+  function validEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) && value.length <= 120;
+  }
+
+  function setStatus(message, type) {
+    status.textContent = message;
+    status.className = 'form-status ' + (type || '');
+  }
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const name = cleanText(form.name.value, 80);
+    const email = form.email.value.trim();
+    const service = form.service.value;
+    const message = cleanText(form.message.value, 1200);
+    const honeypot = form.querySelector('[name="_gotcha"]').value;
+
+    if (honeypot) {
+      setStatus('Thanks. Your message has been received.', 'success');
+      return;
+    }
+
+    if (name.length < 2) {
+      setStatus('Please enter your name.', 'error');
+      form.name.focus();
+      return;
+    }
+
+    if (!validEmail(email)) {
+      setStatus('Please enter a valid email address.', 'error');
+      form.email.focus();
+      return;
+    }
+
+    if (!allowedServices.has(service)) {
+      setStatus('Please choose the service that best matches your request.', 'error');
+      form.service.focus();
+      return;
+    }
+
+    if (message.length < 20) {
+      setStatus('Please include a little more context so I can understand the request.', 'error');
+      form.message.focus();
+      return;
+    }
+
+    form.name.value = name;
+    form.email.value = email;
+    form.message.value = message;
+
+    const subject = 'Consultation Request - Anchor & Claw';
+    const body = [
+      'Name: ' + name,
+      'Email: ' + email,
+      'Service: ' + service,
+      '',
+      'Message:',
+      message
+    ].join('\n');
+
+    const mailto = 'mailto:' + destination +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+
+    setStatus('Opening your email app with a prepared message. If nothing opens, email anchorandclaw@protonmail.com directly.', 'success');
+    window.location.href = mailto;
+  });
+})();
+</script>
+
+<!-- GAME OF LIFE -->
+<script>
+(function() {
+  const canvas = document.getElementById('gol-canvas');
+  const ctx = canvas.getContext('2d');
+  const CELL = 14;
+  let cols, rows, grid, next;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols = Math.ceil(canvas.width / CELL) + 2;
+    rows = Math.ceil(canvas.height / CELL) + 2;
+    grid = make();
+    seed();
+  }
+
+  function make() {
+    return Array.from({length: rows}, () => new Uint8Array(cols));
+  }
+
+  function seed() {
+    // Sparse random seed — low density for subtle bg
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        grid[r][c] = Math.random() < 0.12 ? 1 : 0;
+
+    // Plant a glider in upper-right area
+    const gr = 4, gc = Math.floor(cols * 0.75);
+    const glider = [[0,1],[1,2],[2,0],[2,1],[2,2]];
+    glider.forEach(([dr,dc]) => {
+      if (gr+dr < rows && gc+dc < cols) grid[gr+dr][gc+dc] = 1;
+    });
+  }
+
+  function step() {
+    next = make();
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        let n = 0;
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = (r + dr + rows) % rows;
+            const nc = (c + dc + cols) % cols;
+            n += grid[nr][nc];
+          }
+        const alive = grid[r][c];
+        next[r][c] = (alive && (n === 2 || n === 3)) || (!alive && n === 3) ? 1 : 0;
+      }
+    }
+    grid = next;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!grid[r][c]) continue;
+        const x = c * CELL;
+        const y = r * CELL;
+        ctx.fillStyle = 'rgba(74, 127, 212, 0.6)';
+        ctx.fillRect(x + 2, y + 2, CELL - 4, CELL - 4);
+      }
+    }
+  }
+
+  let tick = 0;
+  function loop() {
+    tick++;
+    if (tick % 4 === 0) { step(); draw(); }
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+  loop();
+})();
+</script>
+
+</body>
+</html>
